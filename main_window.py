@@ -1,5 +1,9 @@
 import streamlit as st
 import numpy as np
+
+#st.header("ROI global:")
+
+
 import pymc3 as pm
 import matplotlib.pyplot as plt
 
@@ -68,40 +72,44 @@ funnel_type = st.selectbox(
     'Choisir le type de  tunnel:',
      ["Publicité > Page de vente > Upsell"])
 
-st.sidebar.header("Compléter les information du tunnel")
 
-st.sidebar.subheader("1 - Publicité:")
-ads_cost = st.sidebar.number_input("Budget dépensé (€):", min_value=20, format="%.d")
-ads_nb_covers = st.sidebar.number_input("Nombre couvertures :", min_value=10, format="%.d")
-ads_nb_clicks = st.sidebar.number_input("Nombre de clicks uniques sortants:", min_value=10, format="%.d")
+password = st.sidebar.text_input("Enter a password", type="password")
+if password in PASSWORDS:
 
-st.sidebar.subheader("2 - Page de vente:")
-nb_clients = st.sidebar.number_input("Nombre de clients convertis par la page:", min_value=0, format="%.d")
-prix_unitaire_produit = st.sidebar.number_input("Prix unitaire du produit principal (€):", min_value=5, format="%.d")
+	st.sidebar.header("Compléter les information du tunnel")
+
+	st.sidebar.subheader("1 - Publicité:")
+	ads_cost = st.sidebar.number_input("Budget dépensé (€):", min_value=20, format="%.d")
+	ads_nb_covers = st.sidebar.number_input("Nombre couvertures :", min_value=10, format="%.d")
+	ads_nb_clicks = st.sidebar.number_input("Nombre de clicks uniques sortants:", min_value=10, format="%.d")
+
+	st.sidebar.subheader("2 - Page de vente:")
+	nb_clients = st.sidebar.number_input("Nombre de clients convertis par la page:", min_value=0, format="%.d")
+	prix_unitaire_produit = st.sidebar.number_input("Prix unitaire du produit principal (€):", min_value=5, format="%.d")
 
 
-st.sidebar.subheader("3 - Upsell:")
-upsell_nb_ventes = st.sidebar.number_input("Nombre de clients ayant acheté l'upsell:", min_value=0, format="%.d")
-prix_unitaire_upsell = st.sidebar.number_input("Prix unitaire du produit Upsell (€):", min_value=20, format="%.d")
+	st.sidebar.subheader("3 - Upsell:")
+	upsell_nb_ventes = st.sidebar.number_input("Nombre de clients ayant acheté l'upsell:", min_value=0, format="%.d")
+	prix_unitaire_upsell = st.sidebar.number_input("Prix unitaire du produit Upsell (€):", min_value=20, format="%.d")
 
-posteriors_dict, proba_good_ROI = get_funnel_posteriors(ads_cost, ads_nb_covers, ads_nb_clicks, nb_clients, prix_unitaire_produit, upsell_nb_ventes, prix_unitaire_upsell)
-plot_funnel_posteriors(posteriors_dict, proba_good_ROI)
+	posteriors_dict, proba_good_ROI = get_funnel_posteriors(ads_cost, ads_nb_covers, ads_nb_clicks, nb_clients, prix_unitaire_produit, upsell_nb_ventes, prix_unitaire_upsell)
+	plot_funnel_posteriors(posteriors_dict, proba_good_ROI)
 
-st.subheader("What happens if we scale up ?")
-new_ads_cost = st.slider("New ads budget :", min_value=float(ads_cost), max_value=10.*ads_cost, step=ads_cost/10.)
+	st.subheader("What happens if we scale up ?")
+	new_ads_cost = st.slider("New ads budget :", min_value=float(ads_cost), max_value=10.*ads_cost, step=ads_cost/10.)
 
-new_nb_clients = new_ads_cost/posteriors_dict["CPC"]*posteriors_dict["page_conversion_rate"]
-new_nb_upsells = new_nb_clients * posteriors_dict["upsell_conversion_rate"]
-margin_posterior = new_nb_clients*prix_unitaire_produit + new_nb_upsells*prix_unitaire_upsell - new_ads_cost
-fig3, ax = plt.subplots()
-ax = pm.plot_posterior(margin_posterior, hdi_prob=0.95, ax=ax, textsize=textsize)
-ax.set_title("Margin posterior if you scale")
-st.pyplot(fig3)
-proba_positive_margin = len(margin_posterior[margin_posterior>0]) / len(margin_posterior) * 100
-st.warning("The probability for having a positive margin is : %.1f%%" % proba_positive_margin)
+	new_nb_clients = new_ads_cost/posteriors_dict["CPC"]*posteriors_dict["page_conversion_rate"]
+	new_nb_upsells = new_nb_clients * posteriors_dict["upsell_conversion_rate"]
+	margin_posterior = new_nb_clients*prix_unitaire_produit + new_nb_upsells*prix_unitaire_upsell - new_ads_cost
+	fig3, ax = plt.subplots()
+	ax = pm.plot_posterior(margin_posterior, hdi_prob=0.95, ax=ax, textsize=textsize)
+	ax.set_title("Margin posterior if you scale")
+	st.pyplot(fig3)
+	proba_positive_margin = len(margin_posterior[margin_posterior>0]) / len(margin_posterior) * 100
+	st.warning("The probability for having a positive margin is : %.1f%%" % proba_positive_margin)
 
 #pm.forestplot(posteriors_dict, hdi_prob=0.95, ax=ax)
 #ax.set_xscale('log')
 #ax.set_title(" ")
-
+#"""
 
