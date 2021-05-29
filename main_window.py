@@ -74,8 +74,9 @@ funnel_type = st.selectbox(
 
 
 password = st.sidebar.text_input("Enter a password", type="password")
-if password in st.secrets["PASSWORDS"]:
-
+if password not in st.secrets["PASSWORDS"]:
+	st.sidebar.error("Accès refusé. Etes vous sûr d'avoir saisi le bon mot de passe ?")
+else:
 	st.sidebar.header("Compléter les information du tunnel")
 
 	st.sidebar.subheader("1 - Publicité:")
