@@ -1,0 +1,9 @@
+####### example-requirements.txt #######
+#
+###### Requirements without Version Specifiers ######
+pandas
+streamlit
+plotly
+pymc3
+numpy
+matplotlib
