@@ -73,9 +73,9 @@ funnel_type = st.selectbox(
      ["Publicité > Page de vente > Upsell"])
 
 
-password = st.sidebar.text_input("Enter a password", type="password")
+password = st.sidebar.text_input("Saisir un mot de passe", type="password")
 if password not in st.secrets["PASSWORDS"]:
-	st.sidebar.error("Accès refusé. Etes vous sûr d'avoir saisi le bon mot de passe ?")
+	st.sidebar.error("Veuillez saisir, ci-dessus, le mot de passe permettant d'accéder à l'application.")
 else:
 	st.sidebar.header("Compléter les information du tunnel")
 
