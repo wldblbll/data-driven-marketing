@@ -74,7 +74,7 @@ funnel_type = st.selectbox(
 
 
 password = st.sidebar.text_input("Enter a password", type="password")
-if password in PASSWORDS:
+if password in st.secrets["PASSWORDS"]:
 
 	st.sidebar.header("Compléter les information du tunnel")
 
