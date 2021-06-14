@@ -49,16 +49,16 @@ def get_funnel_posteriors(ads_cost, ads_nb_covers, ads_nb_clicks, nb_clients, pr
 
 
 def plot_funnel_posteriors(posteriors_dict, proba_good_ROI, textsize = 8):	
-	fig1, axs = plt.subplots(2, 2)
+	fig1, axs = plt.subplots(1	, 2)
 	pm.plot_posterior(posteriors_dict["CTR"], hdi_prob=0.95, ax=axs[0,0], textsize=textsize)
-	axs[0,0].set_title("CTR")
+	axs[0,0].set_title("Click Through Rate")
 	pm.plot_posterior(posteriors_dict["CPC"], hdi_prob=0.95, ax=axs[0,1], textsize=textsize)
-	axs[0,1].set_title("CPC")
-	pm.plot_posterior(posteriors_dict["gains"], hdi_prob=0.95, ax=axs[1,0], textsize=textsize)
-	axs[1,0].set_title("Gross sales - main product")
-	if sum(posteriors_dict["upsell_gains"])>0:
-		pm.plot_posterior(posteriors_dict["upsell_gains"], hdi_prob=0.95, ax=axs[1,1], textsize=textsize)
-		axs[1,1].set_title("Gross sales - Upsell product")
+	axs[0,1].set_title("Cost Per Click")
+	#pm.plot_posterior(posteriors_dict["gains"], hdi_prob=0.95, ax=axs[1,0], textsize=textsize)
+	#axs[1,0].set_title("Gross sales - main product")
+	#if sum(posteriors_dict["upsell_gains"])>0:
+	#	pm.plot_posterior(posteriors_dict["upsell_gains"], hdi_prob=0.95, ax=axs[1,1], textsize=textsize)
+	#	axs[1,1].set_title("Gross sales - Upsell product")
 	fig1.tight_layout()
 	st.pyplot(fig1)
 
