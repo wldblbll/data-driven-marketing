@@ -3,11 +3,14 @@ import numpy as np
 
 #st.header("ROI global:")
 
+DEBUG =False
 
 import pymc3 as pm
 import matplotlib.pyplot as plt
 
 textsize = 8
+
+st.set_page_config(page_title='Data Driven Marketing', layout = 'wide', initial_sidebar_state = 'auto') #page_icon = favicon, 
 
 def simulate_beta_posterior(nb_trials, num_successes, beta_prior_a, beta_prior_b):
   posterior_draws = np.random.beta(num_successes+beta_prior_a,
@@ -50,9 +53,9 @@ def get_funnel_posteriors(ads_cost, ads_nb_covers, ads_nb_clicks, nb_clients, pr
 
 def plot_funnel_posteriors(posteriors_dict, proba_good_ROI, textsize = 8):	
 	fig1, axs = plt.subplots(1	, 2)
-	pm.plot_posterior(posteriors_dict["CTR"], hdi_prob=0.95, ax=axs[0,0], textsize=textsize)
+	pm.plot_posterior(posteriors_dict["CTR"], hdi_prob=0.95, ax=axs[0], textsize=textsize)
 	axs[0].set_title("Click Through Rate")
-	pm.plot_posterior(posteriors_dict["CPC"], hdi_prob=0.95, ax=axs[0,1], textsize=textsize)
+	pm.plot_posterior(posteriors_dict["CPC"], hdi_prob=0.95, ax=axs[1], textsize=textsize)
 	axs[1].set_title("Cost Per Click")
 	#pm.plot_posterior(posteriors_dict["gains"], hdi_prob=0.95, ax=axs[1,0], textsize=textsize)
 	#axs[1,0].set_title("Gross sales - main product")
@@ -79,7 +82,7 @@ funnel_type = st.selectbox(
 
 
 password = st.sidebar.text_input("Saisir un mot de passe", type="password")
-if password not in st.secrets["PASSWORDS"]: #["DEBUG"]: #
+if not DEBUG and password not in st.secrets["PASSWORDS"]: #["DEBUG"]: #
 	st.sidebar.error("Veuillez saisir, ci-dessus, le mot de passe permettant d'accéder à l'application.")
 else:
 	st.sidebar.header("Compléter les information du tunnel")
@@ -115,8 +118,8 @@ else:
 	ax = pm.plot_posterior(margin_posterior, hdi_prob=0.95, ax=ax, textsize=textsize)
 	ax.set_title("Margin posterior if you scale")
 	st.pyplot(fig3)
-	proba_positive_margin = len(margin_posterior[margin_posterior>0]) / len(margin_posterior) * 100
-	st.warning("The probability for having a positive margin is : %.1f%%" % proba_positive_margin)
+	#proba_positive_margin = len(margin_posterior[margin_posterior>0]) / len(margin_posterior) * 100
+	#st.warning("The probability for having a positive margin is : %.1f%%" % proba_positive_margin)
 
 #pm.forestplot(posteriors_dict, hdi_prob=0.95, ax=ax)
 #ax.set_xscale('log')
