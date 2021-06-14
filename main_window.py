@@ -32,9 +32,13 @@ def get_funnel_posteriors(ads_cost, ads_nb_covers, ads_nb_clicks, nb_clients, pr
 	nb_clients_posterior = page_visits_sample*conversion_rate_posterior
 	posteriors_dict["gains"] = prix_unitaire_produit*nb_clients_posterior
 
-	upsell_conversion_rate = simulate_beta_posterior(nb_clients, upsell_nb_ventes, 1, 1)
-	posteriors_dict["upsell_conversion_rate"] = upsell_conversion_rate
-	posteriors_dict["upsell_gains"] = prix_unitaire_upsell*nb_clients_posterior*upsell_conversion_rate
+	if upsell_nb_ventes<0: # Upsells are not part of the funnel
+		#import pdb; pdb.set_trace()
+		posteriors_dict["upsell_gains"] = np.zeros(len(posteriors_dict["gains"]))
+	else:
+		upsell_conversion_rate = simulate_beta_posterior(nb_clients, upsell_nb_ventes, 1, 1)
+		posteriors_dict["upsell_conversion_rate"] = upsell_conversion_rate
+		posteriors_dict["upsell_gains"] = prix_unitaire_upsell*nb_clients_posterior*upsell_conversion_rate
 
 	posteriors_dict["ROI"] = (posteriors_dict["gains"]+posteriors_dict["upsell_gains"])/ads_cost
 
@@ -52,8 +56,9 @@ def plot_funnel_posteriors(posteriors_dict, proba_good_ROI, textsize = 8):
 	axs[0,1].set_title("CPC")
 	pm.plot_posterior(posteriors_dict["gains"], hdi_prob=0.95, ax=axs[1,0], textsize=textsize)
 	axs[1,0].set_title("Gross sales - main product")
-	pm.plot_posterior(posteriors_dict["upsell_gains"], hdi_prob=0.95, ax=axs[1,1], textsize=textsize)
-	axs[1,1].set_title("Gross sales - Upsell product")
+	if sum(posteriors_dict["upsell_gains"])>0:
+		pm.plot_posterior(posteriors_dict["upsell_gains"], hdi_prob=0.95, ax=axs[1,1], textsize=textsize)
+		axs[1,1].set_title("Gross sales - Upsell product")
 	fig1.tight_layout()
 	st.pyplot(fig1)
 
@@ -74,7 +79,7 @@ funnel_type = st.selectbox(
 
 
 password = st.sidebar.text_input("Saisir un mot de passe", type="password")
-if password not in st.secrets["PASSWORDS"]:
+if password not in st.secrets["PASSWORDS"]: #["DEBUG"]: #
 	st.sidebar.error("Veuillez saisir, ci-dessus, le mot de passe permettant d'accéder à l'application.")
 else:
 	st.sidebar.header("Compléter les information du tunnel")
@@ -88,10 +93,14 @@ else:
 	nb_clients = st.sidebar.number_input("Nombre de clients convertis par la page:", min_value=0, format="%.d")
 	prix_unitaire_produit = st.sidebar.number_input("Prix unitaire du produit principal (€):", min_value=5, format="%.d")
 
+	have_upsell = st.sidebar.checkbox("include Upsell product")
+	if have_upsell:
+		st.sidebar.subheader("3 - Upsell:")
+		upsell_nb_ventes = st.sidebar.number_input("Nombre de clients ayant acheté l'upsell:", min_value=0, format="%.d")
+		prix_unitaire_upsell = st.sidebar.number_input("Prix unitaire du produit Upsell (€):", min_value=20, format="%.d")
+	else:
+		upsell_nb_ventes = prix_unitaire_upsell = -1
 
-	st.sidebar.subheader("3 - Upsell:")
-	upsell_nb_ventes = st.sidebar.number_input("Nombre de clients ayant acheté l'upsell:", min_value=0, format="%.d")
-	prix_unitaire_upsell = st.sidebar.number_input("Prix unitaire du produit Upsell (€):", min_value=20, format="%.d")
 
 	posteriors_dict, proba_good_ROI = get_funnel_posteriors(ads_cost, ads_nb_covers, ads_nb_clicks, nb_clients, prix_unitaire_produit, upsell_nb_ventes, prix_unitaire_upsell)
 	plot_funnel_posteriors(posteriors_dict, proba_good_ROI)
@@ -100,7 +109,7 @@ else:
 	new_ads_cost = st.slider("New ads budget :", min_value=float(ads_cost), max_value=10.*ads_cost, step=ads_cost/10.)
 
 	new_nb_clients = new_ads_cost/posteriors_dict["CPC"]*posteriors_dict["page_conversion_rate"]
-	new_nb_upsells = new_nb_clients * posteriors_dict["upsell_conversion_rate"]
+	new_nb_upsells = new_nb_clients * posteriors_dict["upsell_conversion_rate"] if have_upsell else 0
 	margin_posterior = new_nb_clients*prix_unitaire_produit + new_nb_upsells*prix_unitaire_upsell - new_ads_cost
 	fig3, ax = plt.subplots()
 	ax = pm.plot_posterior(margin_posterior, hdi_prob=0.95, ax=ax, textsize=textsize)
